@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atomic Chain - Evolution</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <header class="header">
+            <h1 class="title">ATOMIC<span>CHAIN</span></h1>
+            
+            <div class="score-container">
+                <div class="score-box">
+                    <span class="label">Score</span>
+                    <span id="current-score" class="value">0</span>
+                </div>
+                <div class="score-box">
+                    <span class="label">Best</span>
+                    <span id="best-score" class="value">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="game-controls">
+            <button id="restart-button" class="btn">New Cycle</button>
+        </div>
+
+        <main id="game-board" class="grid-container">
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            
+            <div id="game-over" class="game-message">
+                <p>COLLAPSE</p>
+                <button class="btn" onclick="game.restart()">Restart System</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
