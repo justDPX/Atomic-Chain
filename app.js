@@ -211,3 +211,4 @@ class Game2048 {
 }
 
 window.game = new Game2048();
+// ahaha
