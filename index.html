@@ -10,7 +10,10 @@
 
     <div class="game-wrapper">
         <header class="header">
-            <h1 class="title">ATOMIC<span>CHAIN</span></h1>
+            <div class="title-group">
+                <h1 class="title">ATOMIC<span>CHAIN</span></h1>
+                <div id="level-indicator" class="level-badge">Level 1</div>
+            </div>
             
             <div class="score-container">
                 <div class="score-box">
@@ -36,7 +39,7 @@
             
             <div id="game-over" class="game-message">
                 <p>COLLAPSE</p>
-                <button class="btn" onclick="game.restart()">Restart System</button>
+                <button class="btn" onclick="game.restart()">Next Phase</button>
             </div>
         </main>
     </div>

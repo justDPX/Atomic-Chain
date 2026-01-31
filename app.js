@@ -19,31 +19,84 @@ class Game2048 {
         this.boardElement = document.getElementById('game-board');
         this.scoreElement = document.getElementById('current-score');
         this.bestScoreElement = document.getElementById('best-score');
+        this.levelElement = document.getElementById('level-indicator');
         this.gameOverElement = document.getElementById('game-over');
+        
         this.gridSize = 4;
         this.grid = Array(4).fill().map(() => Array(4).fill(null));
-        this.score = 0;
-        this.bestScore = parseInt(localStorage.getItem('neon_chain_best')) || 0;
         this.tiles = [];
+        this.score = 0;
+        this.currentLevel = 1;
+        this.bestScore = parseInt(localStorage.getItem('neon_chain_best')) || 0;
+
         this.init();
     }
 
     init() {
         this.bestScoreElement.innerText = this.bestScore;
-        document.getElementById('restart-button').addEventListener('click', () => this.restart());
+        document.getElementById('restart-button').addEventListener('click', () => {
+            localStorage.removeItem('neon_chain_state'); // Сброс сохранения при новой игре
+            this.currentLevel = 1;
+            this.restart();
+        });
         this.setupControls();
-        this.restart();
+        
+        // Пытаемся загрузить старую игру
+        if (!this.loadGameState()) {
+            this.restart();
+        }
+    }
+
+    getLevelConfig() {
+        const startIdx = this.currentLevel - 1;
+        const targetIdx = Math.min(startIdx + 7, ELEMENTS.length - 1); 
+        return {
+            start: startIdx,
+            target: targetIdx
+        };
+    }
+
+    saveGameState() {
+        const state = {
+            grid: this.tiles.map(t => ({ r: t.r, c: t.c, level: t.level })),
+            score: this.score,
+            level: this.currentLevel
+        };
+        localStorage.setItem('neon_chain_state', JSON.stringify(state));
+    }
+
+    loadGameState() {
+        const saved = localStorage.getItem('neon_chain_state');
+        if (!saved) return false;
+
+        const state = JSON.parse(saved);
+        this.score = state.score;
+        this.currentLevel = state.level;
+        this.updateScore(0);
+        this.levelElement.innerText = `Level ${this.currentLevel}`;
+
+        state.grid.forEach(tData => {
+            const tile = this.createTileElement(tData.r, tData.c, tData.level);
+            this.grid[tData.r][tData.c] = tile;
+            this.tiles.push(tile);
+        });
+
+        return true;
     }
 
     restart() {
         this.gameOverElement.style.display = 'none';
+        this.gameOverElement.querySelector('p').innerText = "COLLAPSE";
         this.tiles.forEach(t => t.element.remove());
         this.tiles = [];
         this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(null));
         this.score = 0;
         this.updateScore(0);
+        this.levelElement.innerText = `Level ${this.currentLevel}`;
+        
         this.spawnTile();
         this.spawnTile();
+        this.saveGameState();
     }
 
     updateScore(points) {
@@ -65,7 +118,9 @@ class Game2048 {
         }
         if (emptyCells.length > 0) {
             const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            const level = Math.random() < 0.9 ? 0 : 1;
+            const config = this.getLevelConfig();
+            const level = Math.random() < 0.9 ? config.start : config.start + 1;
+            
             const tile = this.createTileElement(r, c, level);
             this.grid[r][c] = tile;
             this.tiles.push(tile);
@@ -100,26 +155,14 @@ class Game2048 {
         inner.innerText = config.name;
         inner.style.color = config.textColor;
 
-        // ПЕРЕНАСТРОЕННОЕ СВЕЧЕНИЕ
-        if (tile.level >= 3) { // Начинаем с CELL
+        if (tile.level >= 3) {
             tile.element.classList.add('tile-super');
-            
-            // Замедляем рост: теперь коэффициенты меньше
-            const power = tile.level - 2; 
-
-            // Размер: Plasma (6) теперь имеет -20%, а не -40%
-            const glowSize = -(power * 5) + "%"; 
-            // Размытие: на Plasma будет около 35px вместо 60px
-            const glowBlur = (power * 8) + "px";
-            // Ограничиваем прозрачность
-            const glowOpacity = Math.min(0.1 + (power * 0.1), 0.6);
-
-            tile.element.style.setProperty('--glow-size', glowSize);
-            tile.element.style.setProperty('--glow-blur', glowBlur);
-            tile.element.style.setProperty('--glow-opacity', glowOpacity);
+            const power = Math.min(tile.level - 2, 8); 
+            tile.element.style.setProperty('--glow-size', `${-(power * 5)}%`);
+            tile.element.style.setProperty('--glow-blur', `${(power * 8)}px`);
+            tile.element.style.setProperty('--glow-opacity', Math.min(0.1 + (power * 0.1), 0.6));
         } else {
             tile.element.classList.remove('tile-super');
-            tile.element.style.boxShadow = 'none';
         }
     }
 
@@ -150,9 +193,10 @@ class Game2048 {
                         tile.level++;
                         this.updateScore(Math.pow(2, tile.level + 1));
                         
-                        tile.element.classList.remove('tile-merged');
-                        void tile.element.offsetWidth;
-                        tile.element.classList.add('tile-merged');
+                        const config = this.getLevelConfig();
+                        if (tile.level === config.target) {
+                            this.levelWin();
+                        }
 
                         this.grid[nextR][nextC] = tile;
                         this.grid[currR][currC] = null;
@@ -161,6 +205,10 @@ class Game2048 {
                         this.tiles = this.tiles.filter(t => t !== nextTile);
                         mergedThisTurn.add(tile);
                         moved = true;
+                        
+                        tile.element.classList.remove('tile-merged');
+                        void tile.element.offsetWidth;
+                        tile.element.classList.add('tile-merged');
                         break;
                     } else break;
                 }
@@ -171,9 +219,20 @@ class Game2048 {
         if (moved) {
             setTimeout(() => {
                 this.spawnTile();
+                this.saveGameState(); // Сохраняем после каждого успешного хода
                 if (this.checkGameOver()) this.gameOverElement.style.display = 'flex';
             }, 180);
         }
+    }
+
+    levelWin() {
+        setTimeout(() => {
+            this.currentLevel++;
+            this.saveGameState(); // Сохраняем прогресс уровня
+            this.gameOverElement.querySelector('p').innerText = "EVOLUTION COMPLETE";
+            this.gameOverElement.querySelector('.btn').innerText = `Enter Level ${this.currentLevel}`;
+            this.gameOverElement.style.display = 'flex';
+        }, 500);
     }
 
     checkGameOver() {
@@ -195,6 +254,7 @@ class Game2048 {
             if (['a', 'arrowleft'].includes(key)) this.move('left');
             if (['d', 'arrowright'].includes(key)) this.move('right');
         });
+        
         let tsX, tsY;
         document.addEventListener('touchstart', (e) => {
             tsX = e.touches[0].clientX; tsY = e.touches[0].clientY;
@@ -211,4 +271,3 @@ class Game2048 {
 }
 
 window.game = new Game2048();
-// ahaha
