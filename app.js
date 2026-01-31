@@ -49,7 +49,7 @@ class Game2048 {
 
     getLevelConfig() {
         const startIdx = this.currentLevel - 1;
-        const targetIdx = Math.min(startIdx + 7, ELEMENTS.length - 1); 
+        const targetIdx = Math.min(startIdx + 10, ELEMENTS.length - 1); 
         return {
             start: startIdx,
             target: targetIdx
