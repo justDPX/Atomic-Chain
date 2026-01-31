@@ -1,17 +1,26 @@
 const ELEMENTS = [
-    { name: "QUARK", color: "#00d4ff", textColor: "#000" },
-    { name: "PROTON", color: "#0091ff", textColor: "#fff" },
-    { name: "ATOM", color: "#4d3dff", textColor: "#fff" },
-    { name: "CELL", color: "#8000ff", textColor: "#fff" },
-    { name: "SPARK", color: "#d400ff", textColor: "#fff" },
-    { name: "PULSE", color: "#ff00d4", textColor: "#fff" },
-    { name: "PLASMA", color: "#ff0066", textColor: "#fff" },
-    { name: "LASER", color: "#ff4d00", textColor: "#fff" },
-    { name: "STAR", color: "#ff9900", textColor: "#000" },
-    { name: "NOVA", color: "#ffcc00", textColor: "#000" },
-    { name: "PULSAR", color: "#ccff00", textColor: "#000" },
-    { name: "QUASAR", color: "#00ffcc", textColor: "#000" },
-    { name: "SINGULARITY", color: "#ffffff", textColor: "#000" }
+    { name: "QUARK", color: "#00d4ff", textColor: "#000" },      // 0
+    { name: "PROTON", color: "#0091ff", textColor: "#fff" },     // 1
+    { name: "ATOM", color: "#4d3dff", textColor: "#fff" },       // 2
+    { name: "CELL", color: "#8000ff", textColor: "#fff" },       // 3
+    { name: "SPARK", color: "#d400ff", textColor: "#fff" },      // 4
+    { name: "PULSE", color: "#ff00d4", textColor: "#fff" },      // 5
+    { name: "PLASMA", color: "#ff0066", textColor: "#fff" },     // 6
+    { name: "LASER", color: "#ff4d00", textColor: "#fff" },      // 7
+    { name: "STAR", color: "#ff9900", textColor: "#000" },      // 8
+    { name: "NOVA", color: "#ffcc00", textColor: "#000" },       // 9
+    { name: "PULSAR", color: "#ccff00", textColor: "#000" },     // 10
+    { name: "QUASAR", color: "#00ffcc", textColor: "#000" },     // 11
+    { name: "SINGULARITY", color: "#ffffff", textColor: "#000" },// 12
+    { name: "DARK MATTER", color: "#2c3e50", textColor: "#fff" }, // 13
+    { name: "EVENT HORIZON", color: "#1a1a1a", textColor: "#00f2ff" }, // 14
+    { name: "BLACK HOLE", color: "#000000", textColor: "#fff" },  // 15
+    { name: "GALAXY", color: "#5b2c6f", textColor: "#fff" },      // 16
+    { name: "CLUSTER", color: "#1b4f72", textColor: "#fff" },     // 17
+    { name: "UNIVERSE", color: "#0b5345", textColor: "#fff" },    // 18
+    { name: "MULTIVERSE", color: "#641e16", textColor: "#fff" },  // 19
+    { name: "OMNIVERSE", color: "#f4d03f", textColor: "#000" },   // 20
+    { name: "THE BIG BANG", color: "#ffffff", textColor: "#000" } // 21
 ];
 
 class Game2048 {
@@ -34,14 +43,22 @@ class Game2048 {
 
     init() {
         this.bestScoreElement.innerText = this.bestScore;
+        
+        // Глобальный сброс при нажатии на кнопку New Cycle
         document.getElementById('restart-button').addEventListener('click', () => {
-            localStorage.removeItem('neon_chain_state'); // Сброс сохранения при новой игре
-            this.currentLevel = 1;
-            this.restart();
+            if(confirm("Вы уверены, что хотите полностью сбросить прогресс и уровни?")) {
+                localStorage.removeItem('neon_chain_state');
+                localStorage.removeItem('neon_chain_best');
+                this.currentLevel = 1;
+                this.bestScore = 0;
+                this.bestScoreElement.innerText = "0";
+                this.restart();
+            }
         });
+
         this.setupControls();
         
-        // Пытаемся загрузить старую игру
+        // Загрузка сохранения или старт новой игры
         if (!this.loadGameState()) {
             this.restart();
         }
@@ -71,9 +88,9 @@ class Game2048 {
 
         const state = JSON.parse(saved);
         this.score = state.score;
-        this.currentLevel = state.level;
+        this.currentLevel = state.level || 1;
         this.updateScore(0);
-        this.levelElement.innerText = `Level ${this.currentLevel}`;
+        if(this.levelElement) this.levelElement.innerText = `Level ${this.currentLevel}`;
 
         state.grid.forEach(tData => {
             const tile = this.createTileElement(tData.r, tData.c, tData.level);
@@ -86,13 +103,12 @@ class Game2048 {
 
     restart() {
         this.gameOverElement.style.display = 'none';
-        this.gameOverElement.querySelector('p').innerText = "COLLAPSE";
         this.tiles.forEach(t => t.element.remove());
         this.tiles = [];
         this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(null));
         this.score = 0;
         this.updateScore(0);
-        this.levelElement.innerText = `Level ${this.currentLevel}`;
+        if(this.levelElement) this.levelElement.innerText = `Level ${this.currentLevel}`;
         
         this.spawnTile();
         this.spawnTile();
@@ -119,6 +135,7 @@ class Game2048 {
         if (emptyCells.length > 0) {
             const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             const config = this.getLevelConfig();
+            // Шанс появления базового элемента уровня или следующего за ним
             const level = Math.random() < 0.9 ? config.start : config.start + 1;
             
             const tile = this.createTileElement(r, c, level);
@@ -149,18 +166,18 @@ class Game2048 {
         
         const config = ELEMENTS[tile.level] || ELEMENTS[ELEMENTS.length - 1];
         tile.element.style.backgroundColor = config.color;
-        tile.element.style.color = config.color; 
         
         const inner = tile.element.querySelector('.tile-inner');
         inner.innerText = config.name;
         inner.style.color = config.textColor;
 
+        // Динамическое свечение
         if (tile.level >= 3) {
             tile.element.classList.add('tile-super');
-            const power = Math.min(tile.level - 2, 8); 
-            tile.element.style.setProperty('--glow-size', `${-(power * 5)}%`);
-            tile.element.style.setProperty('--glow-blur', `${(power * 8)}px`);
-            tile.element.style.setProperty('--glow-opacity', Math.min(0.1 + (power * 0.1), 0.6));
+            const power = Math.min(tile.level - 2, 15); 
+            tile.element.style.setProperty('--glow-size', `${-(power * 4)}%`);
+            tile.element.style.setProperty('--glow-blur', `${(power * 6)}px`);
+            tile.element.style.setProperty('--glow-opacity', Math.min(0.1 + (power * 0.05), 0.7));
         } else {
             tile.element.classList.remove('tile-super');
         }
@@ -219,7 +236,7 @@ class Game2048 {
         if (moved) {
             setTimeout(() => {
                 this.spawnTile();
-                this.saveGameState(); // Сохраняем после каждого успешного хода
+                this.saveGameState();
                 if (this.checkGameOver()) this.gameOverElement.style.display = 'flex';
             }, 180);
         }
@@ -228,9 +245,15 @@ class Game2048 {
     levelWin() {
         setTimeout(() => {
             this.currentLevel++;
-            this.saveGameState(); // Сохраняем прогресс уровня
+            this.saveGameState();
             this.gameOverElement.querySelector('p').innerText = "EVOLUTION COMPLETE";
-            this.gameOverElement.querySelector('.btn').innerText = `Enter Level ${this.currentLevel}`;
+            const nextBtn = this.gameOverElement.querySelector('.btn');
+            nextBtn.innerText = `Enter Level ${this.currentLevel}`;
+            // Чтобы кнопка в модалке не сбрасывала всё, а просто закрывала окно
+            nextBtn.onclick = () => {
+                this.gameOverElement.style.display = 'none';
+                if(this.levelElement) this.levelElement.innerText = `Level ${this.currentLevel}`;
+            };
             this.gameOverElement.style.display = 'flex';
         }, 500);
     }
