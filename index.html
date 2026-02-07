@@ -7,23 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <aside id="levels-sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>EVOLUTION STAGES</h3>
+            <button id="close-sidebar" class="mobile-only">✕</button>
+        </div>
+        <div id="levels-list" class="levels-list"></div>
+    </aside>
+
+    <button id="menu-toggle" class="menu-btn mobile-only">STAGES</button>
 
     <div class="game-wrapper">
         <header class="header">
             <div class="title-group">
-                <h1 class="title">ATOMIC<span>CHAIN</span></h1>
-                <div id="level-indicator" class="level-badge">Level 1</div>
+                <div class="badge-row">
+                    <h1 class="title">ATOMIC<span>CHAIN</span></h1>
+                    <div id="level-indicator" class="level-badge">Stage 1</div>
+                </div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-fill"></div>
+                </div>
             </div>
-            
             <div class="score-container">
-                <div class="score-box">
-                    <span class="label">Score</span>
-                    <span id="current-score" class="value">0</span>
-                </div>
-                <div class="score-box">
-                    <span class="label">Best</span>
-                    <span id="best-score" class="value">0</span>
-                </div>
+                <div class="score-box"><span class="label">Score</span><span id="current-score" class="value">0</span></div>
+                <div class="score-box"><span class="label">Best</span><span id="best-score" class="value">0</span></div>
             </div>
         </header>
 
@@ -39,11 +46,10 @@
             
             <div id="game-over" class="game-message">
                 <p>COLLAPSE</p>
-                <button class="btn" onclick="game.restart()">Next Phase</button>
+                <button class="btn" id="msg-action-btn">Next Phase</button>
             </div>
         </main>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
