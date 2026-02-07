@@ -4,7 +4,7 @@ const GAME_CONFIG = {
     // Оставь 0 или null для обычной игры.
     debugLevel: 0, 
 
-    evolutionStepsPerLevel: 3, 
+    evolutionStepsPerLevel: 9, 
     spawnNewTileChance: 0.9,
     
     glow: {
