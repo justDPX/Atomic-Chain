@@ -57,6 +57,7 @@ class Game2048 {
         this.progressBar = document.getElementById('progress-bar');
         this.gameOverElement = document.getElementById('game-over');
         this.sidebar = document.getElementById('levels-sidebar');
+        this.isScoreSubmitted = false;
         
         this.gridSize = GAME_CONFIG.grid.size;
         this.isDebugActive = GAME_CONFIG.debugLevel && GAME_CONFIG.debugLevel > 0;
@@ -102,7 +103,15 @@ class Game2048 {
             this.restart();
         }
 
-        // Загружаем таблицу лидеров сразу при старте
+
+        const nameInput = document.getElementById('player-name');
+        if (nameInput) {
+            // Загружаем сохраненное имя из памяти
+            nameInput.value = localStorage.getItem('atomic_explorer_name') || "";
+            nameInput.addEventListener('change', (e) => {
+                localStorage.setItem('atomic_explorer_name', e.target.value);
+            });
+        }
         this.refreshLeaderboard();
     }
 
@@ -228,6 +237,7 @@ class Game2048 {
     }
 
     restart() {
+        this.isScoreSubmitted = false;
         this.gameOverElement.style.display = 'none';
         this.tiles.forEach(t => t.element.remove());
         this.tiles = [];
@@ -354,9 +364,10 @@ class Game2048 {
                     const btn = document.getElementById('msg-action-btn');
                     btn.innerText = "Try Again"; 
                     
-                    if (!this.isDebugActive) {
-                        const name = prompt("Universe collapsed! Enter name for history:", "Explorer") || "Anonymous";
-                        this.sendToLeaderboard(name);
+                    if (!this.isDebugActive && !this.isScoreSubmitted) {
+                        const activeName = localStorage.getItem('atomic_explorer_name') || "Anonymous";
+                        this.sendToLeaderboard(activeName);
+                        this.isScoreSubmitted = true; // Блокируем повторную отправку
                     }
                     
                     btn.onclick = () => this.restart();
