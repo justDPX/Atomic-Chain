@@ -28,28 +28,47 @@
                     <div id="progress-bar" class="progress-fill"></div>
                 </div>
             </div>
+            
             <div class="score-container">
-                <div class="score-box"><span class="label">Score</span><span id="current-score" class="value">0</span></div>
-                <div class="score-box"><span class="label">Best</span><span id="best-score" class="value">0</span></div>
+                <div class="score-box">
+                    <span class="label">Score</span>
+                    <span id="current-score" class="value">0</span>
+                </div>
+                <div class="score-box">
+                    <span class="label">Best</span>
+                    <span id="best-score" class="value">0</span>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button id="restart-button" class="btn">New Cycle</button>
             </div>
         </header>
 
-        <div class="game-controls">
-            <button id="restart-button" class="btn">New Cycle</button>
-        </div>
+        <div class="main-layout">
+            <main id="game-board" class="grid-container">
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                
+                <div id="game-over" class="game-message">
+                    <p>COLLAPSE</p>
+                    <button class="btn" id="msg-action-btn">Next Phase</button>
+                </div>
+            </main>
 
-        <main id="game-board" class="grid-container">
-            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-            
-            <div id="game-over" class="game-message">
-                <p>COLLAPSE</p>
-                <button class="btn" id="msg-action-btn">Next Phase</button>
-            </div>
-        </main>
+            <aside class="side-leaderboard">
+                <div class="leaderboard-title">Top Explorers</div>
+                <div id="leaderboard-list">
+                    <div style="font-size: 10px; color: #8b949e; text-align: center; padding: 20px;">
+                        Syncing with Singularity...
+                    </div>
+                </div>
+            </aside>
+        </div>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>

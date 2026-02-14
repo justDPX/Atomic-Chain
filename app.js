@@ -1,10 +1,11 @@
 // --- CONFIGURATION BLOCK ---
 const GAME_CONFIG = {
-    // ДЛЯ ТЕСТОВ: Установи номер уровня (например, 15), чтобы сразу начать с него. 
-    // Оставь 0 или null для обычной игры.
+    // 🧪 РЕЖИМ ПЕСОЧНИЦЫ (Debug Mode)
+    // Укажите номер уровня (1-22), чтобы мгновенно переместиться на него.
+    // Оставьте 0 для обычной игры и записи рекордов.
     debugLevel: 0, 
 
-    evolutionStepsPerLevel: 9, 
+    evolutionStepsPerLevel: 10, 
     spawnNewTileChance: 0.9,
     
     glow: {
@@ -17,7 +18,9 @@ const GAME_CONFIG = {
     grid: {
         size: 4,
         animationSpeed: 150
-    }
+    },
+    // URL твоего Google Apps Script
+    leaderboardUrl: "https://script.google.com/macros/s/AKfycbzu0hqtf8xA8-qmeHatcZVpcNy3vHqZDUFaQwPebGMQicfOez8nnDO481a6nx9ic-bq/exec" 
 };
 
 const ELEMENTS = [
@@ -56,14 +59,10 @@ class Game2048 {
         this.sidebar = document.getElementById('levels-sidebar');
         
         this.gridSize = GAME_CONFIG.grid.size;
-
-        // --- ЛОГИКА УМНОГО ДЕБАГА ---
         this.isDebugActive = GAME_CONFIG.debugLevel && GAME_CONFIG.debugLevel > 0;
         
         if (this.isDebugActive) {
             this.currentLevel = GAME_CONFIG.debugLevel;
-            // В режиме дебага мы не трогаем основной 'current_level' в памяти
-            console.log(`🛠 DEBUG MODE ON: Stage ${this.currentLevel}`);
         } else {
             this.currentLevel = parseInt(localStorage.getItem('current_level')) || 1;
         }
@@ -78,38 +77,87 @@ class Game2048 {
         this.init();
     }
 
-    checkDebugMode() {
-        if (GAME_CONFIG.debugLevel && GAME_CONFIG.debugLevel > 0) {
-            console.log(`🛠 DEBUG MODE: Setting level to ${GAME_CONFIG.debugLevel}`);
-            this.currentLevel = GAME_CONFIG.debugLevel;
-            localStorage.setItem('current_level', this.currentLevel);
-            
-            // Также разблокируем этот уровень в прогрессе, если он еще не открыт
-            const max = parseInt(localStorage.getItem('max_reached_level')) || 1;
-            if (this.currentLevel > max) {
-                localStorage.setItem('max_reached_level', this.currentLevel);
+    init() {
+        this.bestScoreElement.innerText = this.bestScore;
+        
+        document.getElementById('restart-button').addEventListener('click', () => {
+            if(confirm("Full Reset?")) { 
+                localStorage.clear(); 
+                location.reload(); 
             }
-            
-            // Сбрасываем текущее состояние поля, чтобы принудительно начать новый уровень
-            localStorage.removeItem('neon_chain_state');
+        });
+        
+        document.getElementById('menu-toggle')?.addEventListener('click', () => {
+            this.sidebar.classList.add('active');
+        });
+
+        document.getElementById('close-sidebar')?.addEventListener('click', () => {
+            this.sidebar.classList.remove('active');
+        });
+
+        this.setupControls();
+        this.updateLevelsUI();
+        
+        if (!this.loadGameState()) {
+            this.restart();
+        }
+
+        // Загружаем таблицу лидеров сразу при старте
+        this.refreshLeaderboard();
+    }
+
+    // --- МЕТОДЫ ЛИДЕРБОРДА ---
+    async sendToLeaderboard(playerName) {
+        if (this.isDebugActive) return;
+
+        const data = {
+            name: playerName,
+            score: this.score,
+            element: ELEMENTS[this.currentLevel - 1]?.name || "UNKNOWN"
+        };
+
+        try {
+            await fetch(GAME_CONFIG.leaderboardUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                body: JSON.stringify(data)
+            });
+            console.log("Leaderboard updated");
+            // Обновляем список после отправки через небольшую задержку
+            setTimeout(() => this.refreshLeaderboard(), 1000);
+        } catch (e) {
+            console.error("Leaderboard error:", e);
         }
     }
 
-    init() {
-        this.bestScoreElement.innerText = this.bestScore;
-        document.getElementById('restart-button').addEventListener('click', () => {
-            if(confirm("Full Reset?")) { localStorage.clear(); location.reload(); }
-        });
-        document.getElementById('menu-toggle')?.addEventListener('click', () => this.sidebar.classList.add('active'));
-        document.getElementById('close-sidebar')?.addEventListener('click', () => this.sidebar.classList.remove('active'));
-        this.setupControls();
-        this.updateLevelsUI();
-        if (!this.loadGameState()) this.restart();
+    async refreshLeaderboard() {
+        const listContainer = document.getElementById('leaderboard-list');
+        if (!listContainer) return;
+
+        try {
+            const response = await fetch(GAME_CONFIG.leaderboardUrl);
+            const topScores = await response.json();
+            
+            if (!topScores || topScores.length === 0) {
+                listContainer.innerHTML = "<div style='font-size:10px; opacity:0.5; text-align:center; padding:10px;'>No explorers yet.</div>";
+                return;
+            }
+
+            listContainer.innerHTML = topScores.map((entry, i) => `
+                <div class="leader-item">
+                    <span class="leader-name"><span class="leader-rank">${i+1}.</span> ${entry.Name || 'Explorer'}</span>
+                    <span class="leader-score">${entry.Score || 0}</span>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error("Leaderboard fetch error:", e);
+            listContainer.innerHTML = "<div style='color:#ff4444; font-size:10px; text-align:center;'>Offline Mode</div>";
+        }
     }
 
     getLevelConfig() {
         const startIdx = this.currentLevel - 1;
-        // Теперь используем переменную из конфига
         const targetIdx = Math.min(startIdx + GAME_CONFIG.evolutionStepsPerLevel, ELEMENTS.length - 1); 
         return { start: startIdx, target: targetIdx };
     }
@@ -119,8 +167,7 @@ class Game2048 {
         if (!list) return;
         list.innerHTML = '';
 
-        // В дебаге мы можем видеть все 22 уровня, в обычном режиме — только до maxReachedLevel
-        const limit = this.isDebugActive ? ELEMENTS.length : 15; 
+        const limit = this.isDebugActive ? ELEMENTS.length : 22; 
 
         for (let i = 1; i <= limit; i++) {
             const item = document.createElement('div');
@@ -133,10 +180,7 @@ class Game2048 {
             if (!isLocked) {
                 item.onclick = () => {
                     this.currentLevel = i;
-                    // Сохраняем выбор уровня в постоянную память ТОЛЬКО если дебаг ВЫКЛЮЧЕН
-                    if (!this.isDebugActive) {
-                        localStorage.setItem('current_level', i);
-                    }
+                    if (!this.isDebugActive) localStorage.setItem('current_level', i);
                     this.sidebar.classList.remove('active');
                     this.restart();
                 };
@@ -161,30 +205,17 @@ class Game2048 {
             score: this.score, 
             level: this.currentLevel 
         };
-        
-        // Если дебаг включен, сохраняем в отдельный временный слот
         const storageKey = this.isDebugActive ? 'neon_debug_state' : 'neon_chain_state';
         localStorage.setItem(storageKey, JSON.stringify(state));
-        
-        // Сохраняем прогресс уровня только если не в дебаге (или если хочешь, чтобы дебаг тоже сохранял прогресс)
-        if (!this.isDebugActive) {
-            localStorage.setItem('current_level', this.currentLevel);
-        }
+        if (!this.isDebugActive) localStorage.setItem('current_level', this.currentLevel);
     }
 
     loadGameState() {
-        // Если дебаг включен, пробуем загрузить дебаг-сохранение. 
-        // Если выключен — обычное.
         const storageKey = this.isDebugActive ? 'neon_debug_state' : 'neon_chain_state';
         const saved = localStorage.getItem(storageKey);
-        
         if (!saved) return false;
-        
         const state = JSON.parse(saved);
-        
-        // Проверяем, совпадает ли уровень в сохранении с тем, что мы пытаемся загрузить
         if (state.level !== this.currentLevel) return false;
-        
         this.score = state.score;
         this.updateScore(0);
         state.grid.forEach(tData => {
@@ -205,30 +236,19 @@ class Game2048 {
         this.updateScore(0);
         this.spawnTile(); this.spawnTile();
         this.updateLevelsUI();
-        
-        // Важно: при рестарте в дебаге мы НЕ удаляем основное сохранение
         this.saveGameState(); 
     }
 
     updateScore(points) {
         this.score += points;
         this.scoreElement.innerText = this.score;
-
-        // Проверяем, побит ли рекорд
         if (this.score > this.bestScore) {
             this.bestScore = this.score;
             this.bestScoreElement.innerText = this.bestScore;
-
-            // СОХРАНЯЕМ РЕКОРД ТОЛЬКО ЕСЛИ ДЕБАГ ВЫКЛЮЧЕН
-            if (!this.isDebugActive) {
-                localStorage.setItem('neon_chain_best', this.bestScore);
-            } else {
-                // В дебаге можно вывести в консоль, чтобы ты видел прогресс, 
-                // но в LocalStorage это не пойдет.
-                console.log("Debug Highscore reached, but not saved to main storage.");
-            }
+            if (!this.isDebugActive) localStorage.setItem('neon_chain_best', this.bestScore);
         }
     }
+
     spawnTile() {
         const emptyCells = [];
         for (let r = 0; r < this.gridSize; r++) { 
@@ -239,7 +259,6 @@ class Game2048 {
         if (emptyCells.length > 0) {
             const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             const config = this.getLevelConfig();
-            // Используем шанс из конфига
             const level = Math.random() < GAME_CONFIG.spawnNewTileChance ? config.start : config.start + 1;
             const tile = this.createTileElement(r, c, level);
             this.grid[r][c] = tile;
@@ -275,7 +294,6 @@ class Game2048 {
         inner.innerText = config.name;
         inner.style.color = config.textColor;
 
-        // Настройка свечения из GAME_CONFIG
         const startIdx = this.currentLevel - 1;
         if (tile.level >= startIdx + GAME_CONFIG.glow.threshold) {
             tile.element.classList.add('tile-super');
@@ -284,7 +302,7 @@ class Game2048 {
             tile.element.style.setProperty('--glow-opacity', Math.min(opacity, GAME_CONFIG.glow.maxOpacity));
             tile.element.style.zIndex = 10 + power;
         } else {
-            tile.element.classList.add('tile-super'); // Чтобы переменная не ломалась, но гасим ее
+            tile.element.classList.add('tile-super');
             tile.element.style.setProperty('--glow-opacity', 0);
             tile.element.style.zIndex = 10;
         }
@@ -334,7 +352,14 @@ class Game2048 {
                 if (this.checkGameOver()) {
                     this.gameOverElement.querySelector('p').innerText = "COLLAPSE";
                     const btn = document.getElementById('msg-action-btn');
-                    btn.innerText = "Try Again"; btn.onclick = () => this.restart();
+                    btn.innerText = "Try Again"; 
+                    
+                    if (!this.isDebugActive) {
+                        const name = prompt("Universe collapsed! Enter name for history:", "Explorer") || "Anonymous";
+                        this.sendToLeaderboard(name);
+                    }
+                    
+                    btn.onclick = () => this.restart();
                     this.gameOverElement.style.display = 'flex';
                 }
             }, GAME_CONFIG.grid.animationSpeed);
@@ -342,36 +367,27 @@ class Game2048 {
     }
 
     levelWin() {
-    // Определяем следующий уровень
-    const nextLevel = this.currentLevel + 1;
-
-    // ОБНОВЛЯЕМ ПРОГРЕСС ТОЛЬКО ЕСЛИ ДЕБАГ ВЫКЛЮЧЕН
-    if (!this.isDebugActive) {
-        if (nextLevel > this.maxReachedLevel) {
-            this.maxReachedLevel = nextLevel;
-            localStorage.setItem('max_reached_level', this.maxReachedLevel);
-        }
-        // В обычном режиме сохраняем переход на след. уровень
-        localStorage.setItem('current_level', nextLevel);
-    }
-
-    this.gameOverElement.querySelector('p').innerText = "EVOLUTION COMPLETE";
-    const btn = document.getElementById('msg-action-btn');
-    
-    if (btn) {
-        btn.innerText = `Enter Stage ${nextLevel}`;
-        btn.onclick = () => {
-            this.currentLevel = nextLevel;
-            // Если дебаг включен, мы просто меняем текущую сессию в памяти
-            if (!this.isDebugActive) {
-                localStorage.setItem('current_level', this.currentLevel);
+        const nextLevel = this.currentLevel + 1;
+        if (!this.isDebugActive) {
+            if (nextLevel > this.maxReachedLevel) {
+                this.maxReachedLevel = nextLevel;
+                localStorage.setItem('max_reached_level', this.maxReachedLevel);
             }
-            this.gameOverElement.style.display = 'none';
-            this.restart();
-        };
+            localStorage.setItem('current_level', nextLevel);
+        }
+
+        this.gameOverElement.querySelector('p').innerText = "EVOLUTION COMPLETE";
+        const btn = document.getElementById('msg-action-btn');
+        if (btn) {
+            btn.innerText = `Enter Stage ${nextLevel}`;
+            btn.onclick = () => {
+                this.currentLevel = nextLevel;
+                this.gameOverElement.style.display = 'none';
+                this.restart();
+            };
+        }
+        this.gameOverElement.style.display = 'flex';
     }
-    this.gameOverElement.style.display = 'flex';
-}
 
     checkGameOver() {
         for (let r = 0; r < this.gridSize; r++) {
