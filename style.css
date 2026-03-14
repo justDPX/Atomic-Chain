@@ -1,0 +1,449 @@
+:root {
+    --bg-color: #0d1117;
+    --grid-bg: #161b22;
+    --cell-bg: #21262d;
+    --accent-neon: #00f2ff;
+    --text-main: #e6edf3;
+    --sidebar-width: 240px;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    touch-action: none;
+}
+
+/* Стандартная тема (Atomic) */
+body.theme-atomic {
+    --bg-color: #0d1117;
+    --grid-bg: #161b22;
+    --accent-neon: #00f2ff;
+    --text-main: #e6edf3;
+}
+
+/* Фэнтези тема (Золото и Магия) */
+body.theme-fantasy {
+    --bg-color: #1a0f0a; /* Темное дерево/камень */
+    --grid-bg: #2d1b10;
+    --cell-bg: #4b2b18;
+    --accent-neon: #ffd700; /* Золото */
+    --text-main: #f3e5ab;
+}
+
+/* Океан (Глубина) */
+body.theme-ocean {
+    --bg-color: #002129;           /* Очень темный бирюзовый (вместо черного) */
+    --grid-bg: #00353f;           /* Цвет морской глубины для сетки */
+    --cell-bg: #004d5a;           /* Пустые ячейки */
+    --accent-neon: #00ffcc;       /* Яркая лазурь/бирюза для свечения */
+    --text-main: #e0ffff;         /* Светло-лазурный текст */
+}
+
+
+
+
+
+/* --- SIDEBAR (STAGES) --- */
+.sidebar {
+    position: fixed; left: 0; top: 0; height: 100vh; width: var(--sidebar-width);
+    background: var(--bg-color); /* Было rgba(13, 17, 23, 0.98) */ border-right: 1px solid var(--accent-neon); /* Было rgba(0, 242, 255, 0.2) */
+    padding: 20px; z-index: 1000; display: flex; flex-direction: column; transition: transform 0.3s ease;
+    box-sizing: border-box;
+}
+
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+.levels-list { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+
+.level-item {
+    padding: 12px;
+    background: var(--grid-bg); /* Было #1c2128 */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Сделай рамку прозрачнее */
+    border-radius: 8px; cursor: pointer; font-size: 11px; color: #8b949e;
+    text-transform: uppercase; transition: 0.2s;
+}
+
+.level-item.active { 
+    border-color: var(--accent-neon); 
+    color: white; 
+    /* Создаем мягкий фон в цвет темы */
+    background: color-mix(in srgb, var(--accent-neon), transparent 90%); 
+    box-shadow: 0 0 10px var(--accent-neon); 
+}
+.level-item.locked { opacity: 0.1; cursor: not-allowed; filter: grayscale(1); }
+
+/* --- GAME LAYOUT --- */
+.game-wrapper { 
+    width: 100%; 
+    max-width: 900px; /* Increased to fit both grid and leaderboard comfortably */
+    padding: 20px; 
+    margin: 0 auto; /* Center the wrapper on the screen */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.3s;
+}
+
+.player-config {
+    margin-bottom: 20px;
+    padding: 0 5px;
+}
+
+#player-name {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3); /* Темный полупрозрачный фон */
+    border: 1px solid var(--accent-neon);    /* Неоновая рамка в цвет Quark */
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    text-transform: uppercase;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.score-container { 
+    display: flex; 
+    gap: 12px; 
+    margin-top: 15px; 
+    width: 100%;
+}
+
+.score-box {
+    flex: 1;
+    /* This variable now pulls from your .theme-fantasy, .theme-ocean, etc. */
+    background: var(--grid-bg); 
+    padding: 12px 8px;
+    border-radius: 8px;
+    text-align: center;
+    /* Glow/Border matches the theme accent */
+    border: 1px solid var(--accent-neon); 
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+.score-box .label {
+    display: block;
+    font-size: 10px;
+    color: #8b949e; /* Keeps labels neutral */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.score-box .value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff; /* Keeps numbers white for readability */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+body .score-box {
+    flex: 1;
+    /* This forces the background to use your theme variable */
+    background-color: var(--grid-bg) !important; 
+    padding: 12px 8px;
+    border-radius: 8px;
+    text-align: center;
+    /* This ensures the border also matches the world */
+    border: 1px solid var(--accent-neon); 
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Keep the labels and values clean */
+
+
+
+
+.theme-panel {
+    /* ... твои позиционные стили ... */
+    background: var(--bg-color); /* Фон всей коробки */
+    border: 1px solid var(--accent-neon); /* Рамка в цвет мира */
+}
+
+.theme-btn {
+    background: var(--grid-bg); /* Цвет кнопок */
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-btn.active {
+    background: var(--accent-neon); /* Активный мир (Fantasy - золото, Ocean - лазурь) */
+    color: #000;
+    box-shadow: 0 0 15px var(--accent-neon);
+}
+
+
+
+
+/* Эффект при наведении и клике */
+#player-name:focus {
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    border-color: #ffffff;
+}
+
+/* Текст внутри поля, когда оно пустое */
+#player-name::placeholder {
+    color: var(--accent-neon); /* Было rgba(0, 212, 255, 0.5) */
+    opacity: 0.5;
+}
+
+
+
+
+#levels-sidebar h3 {
+    color: var(--accent-neon); /*color: #00f2ff; */
+    text-transform: uppercase;
+    font-family: 'Orbitron', sans-serif; /* Ensures matching font */
+    text-align: center;
+    letter-spacing: 3px;
+    
+    /* Increased Size */
+    font-size: 19px; /* Adjust this number to make it even bigger */
+    font-weight: bold;
+
+    /* Enhanced Glow for larger text */
+    text-shadow: 
+        0 0 8px var(--accent-neon), /* Были жесткие rgba */
+        0 0 15px var(--accent-neon),
+        0 0 25px var(--accent-neon);
+    
+    margin-top: 20px;
+    margin-bottom: 25px;
+}
+
+/* 1. The entire scrollbar area */
+#levels-list::-webkit-scrollbar {
+    width: 8px; /* Width of the vertical scrollbar */
+}
+
+/* 2. The background of the scrollbar (Track) */
+#levels-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2); /* Возвращаем темный фон */
+    border-radius: 10px;
+}
+
+/* 3. The moving part (Thumb) */
+#levels-list::-webkit-scrollbar-thumb {
+    background: var(--accent-neon); 
+    border-radius: 10px;
+    box-shadow: 0 0 10px var(--accent-neon);
+    border: 2px solid transparent; 
+    background-clip: content-box;
+}
+
+/* 4. Hover effect on the thumb */
+#levels-list::-webkit-scrollbar-thumb:hover {
+    background: #ffffff; /* Turns white on hover for high contrast */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+/* For Firefox (Standard support) */
+#levels-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-neon) rgba(0, 0, 0, 0.2);
+}
+
+.main-layout {
+    display: flex;
+    justify-content: center; /* Сетка теперь всегда в центре */
+    align-items: flex-start;
+    width: 100%;
+    position: relative; /* База для позиционирования лидерборда */
+    margin-top: 20px;
+}
+
+/* Панель выбора тем справа */
+.theme-panel {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-color);  /*rgba(22, 27, 34, 0.9);*/
+    border: 1px solid var(--accent-neon); /*rgba(0, 242, 255, 0.3);*/
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1001;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.theme-title {
+    font-size: 10px;
+    color: var(--accent-neon);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 5px;
+    opacity: 0.7;
+}
+
+.theme-btn {
+    background: var(--cell-bg);
+    border: 1px solid transparent;
+    color: var(--text-main);
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.theme-btn:hover {
+    border-color: var(--accent-neon);
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+}
+
+.theme-btn.active {
+    background: var(--accent-neon);
+    color: #000;
+    box-shadow: 0 0 15px var(--accent-neon);
+}
+
+/* Скрываем на мобилках, чтобы не мешало (или можно перенести вниз) */
+@media (max-width: 768px) {
+    .theme-panel {
+        right: 10px;
+        padding: 8px;
+    }
+    .theme-btn { padding: 8px; font-size: 9px; }
+}
+
+/* --- HEADER & STATS --- */
+.header { width: 100%; max-width: 400px; margin-bottom: 20px; }
+.badge-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.title { font-size: 22px; font-weight: 900; margin: 0; letter-spacing: 1px; }
+.title span { color: var(--accent-neon); text-shadow: 0 0 10px var(--accent-neon); }
+.level-badge { border: 1px solid var(--accent-neon); color: var(--accent-neon); padding: 2px 8px; border-radius: 4px; font-size: 12px; box-shadow: 0 0 5px rgba(0, 242, 255, 0.3); }
+
+.progress-container { width: 100%; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; margin-top: 10px; border: 1px solid #30363d; }
+.progress-fill { width: 0%; height: 100%; background: var(--accent-neon); box-shadow: 0 0 10px var(--accent-neon); transition: width 0.4s ease; }
+
+.score-container { display: flex; gap: 8px; margin-top: 15px; }
+.score-box { flex: 1; background: #30363d; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid transparent; transition: 0.3s; }
+.label { display: block; font-size: 10px; color: #8b949e; text-transform: uppercase; }
+.value { font-size: 18px; font-weight: bold; color: white; }
+
+.btn { 
+    background: transparent; border: 1px solid var(--accent-neon); 
+    color: var(--accent-neon); padding: 10px; border-radius: 6px; 
+    cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; 
+    text-transform: uppercase; transition: 0.2s;
+}
+.btn:hover { background: var(--accent-neon); color: black; box-shadow: 0 0 15px var(--accent-neon); }
+
+/* --- GRID SYSTEM --- */
+.grid-container {
+    position: relative;
+    width: 380px;
+    height: 380px;
+    background: var(--grid-bg);
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+    border: 2px solid #30363d;
+    z-index: 2; /* Поверх фона */
+}
+.grid-cell { background: var(--cell-bg); border-radius: 8px; }
+
+/* --- TILES & GLOW --- */
+.tile { position: absolute; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: 800; transition: 0.1s ease-in-out; z-index: 10; }
+
+.tile-super::before {
+    content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
+    background: currentColor; border-radius: 12px; filter: blur(15px); opacity: var(--glow-opacity);
+    z-index: -1; animation: neon-pulse 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes neon-pulse { 
+    from { opacity: calc(var(--glow-opacity) * 0.4); transform: scale(0.95); } 
+    to { opacity: var(--glow-opacity); transform: scale(1.05); } 
+}
+.tile-inner { font-size: 11px; text-align: center; position: relative; z-index: 2; pointer-events: none; padding: 4px; line-height: 1.1; }
+
+/* --- SIDE LEADERBOARD (RIGHT) --- */
+.side-leaderboard {
+    position: absolute;
+    right: calc(50% - 430px);
+    width: 220px;
+    background: var(--grid-bg); /* Changed from #30363d */
+    border: 2px solid var(--accent-neon); /* Changed from #30363d */
+    border-radius: 12px;
+    padding: 15px;
+    min-height: 380px;
+    box-sizing: border-box;
+    transition: 0.3s;
+}
+
+.leaderboard-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--accent-neon);
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+    letter-spacing: 1px;
+}
+
+.leader-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 5px;
+    border-bottom: 1px solid #30363d;
+    font-size: 12px;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.leader-name { color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
+.leader-score { color: var(--accent-neon); font-weight: bold; }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+/* --- MESSAGES --- */
+.game-message { 
+    display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(13, 17, 23, 0.95); z-index: 100; flex-direction: column; 
+    align-items: center; justify-content: center; border-radius: 12px; 
+}
+.game-message p { font-size: 32px; font-weight: 900; color: var(--accent-neon); text-shadow: 0 0 20px var(--accent-neon); margin-bottom: 20px; }
+
+/* --- MOBILE & ADAPTIVE --- */
+.menu-btn {
+    position: fixed; top: 20px; left: 20px; z-index: 900;
+    background: var(--grid-bg); border: 1px solid var(--accent-neon);
+    color: var(--accent-neon); padding: 8px 12px; border-radius: 4px; cursor: pointer;
+}
+
+.mobile-only { display: none; }
+
+@media (max-width: 1100px) { 
+    .sidebar { transform: translateX(-100%); } 
+    .sidebar.active { transform: translateX(0); } 
+    .mobile-only { display: block; } 
+    .game-wrapper { margin-left: 0; } 
+}
+
+@media (max-width: 800px) {
+    .main-layout { flex-direction: column; align-items: center; gap: 20px; }
+    .side-leaderboard { width: 380px; min-height: auto; }
+}
+
+@media (max-width: 420px) { 
+    .grid-container, .side-leaderboard { width: 320px; }
+    .grid-container { height: 320px; grid-gap: 8px; padding: 8px; }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atomic Chain - Evolution</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <aside id="levels-sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <!-- <h3>EVOLUTION STAGES</h3> -->
+            <h3 class="leaderboard-title">EVOLUTION STAGES</h3>
+            <button id="close-sidebar" class="mobile-only">✕</button>
+        </div>
+        <div id="levels-list" class="levels-list"></div>
+    </aside>
+
+    <button id="menu-toggle" class="menu-btn mobile-only">STAGES</button>
+
+    <div class="game-wrapper">
+        <header class="header">
+            <div class="title-group">
+                <div class="badge-row">
+                    <h1 class="title">ATOMIC<span>CHAIN</span></h1>
+                    <div id="level-indicator" class="level-badge">Stage 1</div>
+                </div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="score-container">
+                <div class="score-box">
+                    <span class="label">Score</span>
+                    <span id="current-score" class="value">0</span>
+                </div>
+                <div class="score-box">
+                    <span class="label">Best</span>
+                    <span id="best-score" class="value">0</span>
+                </div>
+            </div>
+            
+
+            <div class="game-controls">
+                <button id="restart-button" class="btn">New Cycle</button>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <main id="game-board" class="grid-container">
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                
+                <div id="game-over" class="game-message">
+                    <p>COLLAPSE</p>
+                    <button class="btn" id="msg-action-btn">Next Phase</button>
+                </div>
+            </main>
+
+            <aside class="side-leaderboard">
+                <div class="leaderboard-container">
+                    <h3 class="leaderboard-title">TOP EXPLORERS</h3>
+                    
+                    <div class="player-config">
+                        <input type="text" id="player-name" placeholder="ID: EXPLORER" maxlength="12">
+                    </div>
+
+                    <div id="leaderboard-list">
+                        </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+
+    <div class="theme-panel">
+        <div class="theme-title">SELECT WORLD</div>
+        <div class="theme-options">
+            <button class="theme-btn" onclick="changeGameTheme('atomic', this)">ATOMIC</button>
+            <button class="theme-btn" onclick="changeGameTheme('fantasy', this)">FANTASY</button>
+            <button class="theme-btn" onclick="changeGameTheme('ocean', this)">OCEAN</button>
+        </div>
+    </div>
+</body>
+</html>
